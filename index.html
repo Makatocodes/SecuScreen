@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureShare - Professional Screen Sharing</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .app-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .app-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .app-header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .card-content {
+            padding: 2rem;
+        }
+
+        .screen-preview {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 15px;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .demo-phone {
+            width: 200px;
+            height: 360px;
+            background: #333;
+            border-radius: 25px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .demo-screen {
+            flex: 1;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .status-connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-waiting {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #56ab2f, #a8e6cf);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .share-link {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .share-link input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-size: 1rem;
+            padding: 0.5rem 0;
+        }
+
+        .participants {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .participant {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .participant-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .participant-info {
+            flex: 1;
+        }
+
+        .participant-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .participant-status {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+
+        .consent-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .modal-content h3 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .modal-content p {
+            color: #666;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .consent-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-card h4 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-card p {
+            color: #666;
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .app-header h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="app-header">
+            <h1>🔒 SecureShare</h1>
+            <p>Professional Screen Sharing with Consent</p>
+        </div>
+
+        <!-- Host View -->
+        <div id="hostView" class="main-card">
+            <div class="card-header">
+                <h2>Host Dashboard</h2>
+                <p>Share your screen securely with consent</p>
+            </div>
+            <div class="card-content">
+                <div class="screen-preview" id="screenPreview">
+                    <div class="demo-phone">
+                        <div class="demo-screen">
+                            <div>Waiting for connection...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="status-indicator status-waiting" id="connectionStatus">
+                    <div class="status-dot"></div>
+                    <span>Waiting for participant</span>
+                </div>
+
+                <div class="share-link">
+                    <label>Share this link:</label>
+                    <input type="text" id="shareUrl" readonly onclick="this.select()">
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-primary" onclick="generateLink()">
+                        📱 Generate New Link
+                    </button>
+                    <button class="btn btn-success" onclick="startDemo()">
+                        ▶️ Start Demo
+                    </button>
+                    <button class="btn btn-danger" onclick="stopSharing()" disabled id="stopBtn">
+                        ⏹️ Stop Sharing
+                    </button>
+                </div>
+
+                <div class="participants">
+                    <h4>Connected Participants</h4>
+                    <div id="participantsList">
+                        <p style="color: #6c757d; text-align: center;">No participants connected</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Information Cards -->
+        <div class="info-cards">
+            <div class="info-card">
+                <h4>🔒 Secure & Private</h4>
+                <p>All connections are encrypted and require explicit consent before screen sharing begins.</p>
+            </div>
+            <div class="info-card">
+                <h4>📱 Cross-Platform</h4>
+                <p>Works on any device with a modern browser. No app installation required for basic viewing.</p>
+            </div>
+            <div class="info-card">
+                <h4>👥 Multi-Participant</h4>
+                <p>Multiple viewers can connect simultaneously with individual consent management.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Consent Modal (for participant view) -->
+    <div id="consentModal" class="consent-modal hidden">
+        <div class="modal-content">
+            <h3>🔒 Screen Sharing Request</h3>
+            <p>Someone has invited you to share your screen. This will allow them to see everything on your device screen.</p>
+            <p><strong>Important:</strong> Only accept if you trust the person requesting access. You can stop sharing at any time.</p>
+            <div class="consent-buttons">
+                <button class="btn btn-success" onclick="acceptSharing()">
+                    ✅ I Consent & Accept
+                </button>
+                <button class="btn btn-danger" onclick="declineSharing()">
+                    ❌ Decline
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isSharing = false;
+        let participantCount = 0;
+        let demoInterval;
+
+        // Generate a unique sharing link
+        function generateLink() {
+            const sessionId = Math.random().toString(36).substring(2, 15);
+            const baseUrl = window.location.origin + window.location.pathname;
+            const shareUrl = `${baseUrl}?session=${sessionId}&mode=participant`;
+            document.getElementById('shareUrl').value = shareUrl;
+            
+            // Simulate copying to clipboard
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                showNotification('Link copied to clipboard!');
+            }).catch(() => {
+                showNotification('Link generated - select and copy manually');
+            });
+        }
+
+        // Start demo mode
+        function startDemo() {
+            isSharing = true;
+            document.getElementById('stopBtn').disabled = false;
+            updateConnectionStatus('connected', 'Screen sharing active');
+            
+            // Simulate adding a participant
+            addParticipant('Demo User', 'Connected');
+            
+            // Animate the demo screen
+            const demoScreen = document.querySelector('.demo-screen');
+            const messages = [
+                'Live Screen Share 📱',
+                'Demo Mode Active ✨',
+                'Secure Connection 🔒',
+                'Real-time Sync 🔄'
+            ];
+            let messageIndex = 0;
+            
+            demoInterval = setInterval(() => {
+                demoScreen.innerHTML = `<div>${messages[messageIndex]}</div>`;
+                messageIndex = (messageIndex + 1) % messages.length;
+            }, 2000);
+        }
+
+        // Stop sharing
+        function stopSharing() {
+            isSharing = false;
+            document.getElementById('stopBtn').disabled = true;
+            updateConnectionStatus('waiting', 'Waiting for participant');
+            clearParticipants();
+            
+            if (demoInterval) {
+                clearInterval(demoInterval);
+            }
+            
+            document.querySelector('.demo-screen').innerHTML = '<div>Waiting for connection...</div>';
+            showNotification('Screen sharing stopped');
+        }
+
+        // Update connection status
+        function updateConnectionStatus(type, message) {
+            const statusEl = document.getElementById('connectionStatus');
+            statusEl.className = `status-indicator status-${type}`;
+            statusEl.querySelector('span').textContent = message;
+        }
+
+        // Add participant to the list
+        function addParticipant(name, status) {
+            participantCount++;
+            const participantsList = document.getElementById('participantsList');
+            
+            if (participantCount === 1) {
+                participantsList.innerHTML = '';
+            }
+            
+            const participantEl = document.createElement('div');
+            participantEl.className = 'participant';
+            participantEl.innerHTML = `
+                <div class="participant-avatar">${name.charAt(0)}</div>
+                <div class="participant-info">
+                    <div class="participant-name">${name}</div>
+                    <div class="participant-status">${status}</div>
+                </div>
+            `;
+            
+            participantsList.appendChild(participantEl);
+        }
+
+        // Clear all participants
+        function clearParticipants() {
+            participantCount = 0;
+            document.getElementById('participantsList').innerHTML = 
+                '<p style="color: #6c757d; text-align: center;">No participants connected</p>';
+        }
+
+        // Show notification
+        function showNotification(message) {
+            // Create a simple notification
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #28a745;
+                color: white;
+                padding: 1rem 2rem;
+                border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                z-index: 2000;
+                animation: slideIn 0.3s ease;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Handle participant consent
+        function acceptSharing() {
+            document.getElementById('consentModal').classList.add('hidden');
+            showNotification('Screen sharing started - connection established!');
+            // In a real app, this would start the actual screen capture
+        }
+
+        function declineSharing() {
+            document.getElementById('consentModal').classList.add('hidden');
+            showNotification('Screen sharing declined');
+            // Redirect back or show declined message
+        }
+
+        // Check URL parameters for participant mode
+        function checkMode() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const mode = urlParams.get('mode');
+            
+            if (mode === 'participant') {
+                // Show consent modal for participants
+                setTimeout(() => {
+                    document.getElementById('consentModal').classList.remove('hidden');
+                }, 1000);
+            }
+        }
+
+        // Add CSS animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            generateLink();
+            checkMode();
+        });
+    </script>
+</body>
+</html>
